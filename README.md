@@ -104,6 +104,14 @@ All settings are loaded from `.env`.
 | `MAX_POLLS` | `0` | `0` runs forever. Use `1` for a one-shot test. |
 | `SKIP_EXISTING_ON_START` | `true` | Initialize state without notifying old posts. |
 | `DISCORD_WEBHOOK_URL` | empty | Optional Discord webhook destination. |
+| `DISCORD_USE_EMBED` | `true` | Send Discord embeds instead of plain text messages. |
+| `DISCORD_EMBED_COLOR` | `#1D9BF0` | Discord embed color as a hex value. |
+| `DISCORD_FOOTER_TEXT` | `X` | Footer prefix, for example `X` in `X • 01/05/2026 12:37`. |
+| `DISCORD_FOOTER_ICON_URL` | empty | Optional footer icon URL. |
+| `DISCORD_AUTHOR_NAME` | `Twitter/X Monitor` | Embed author label. |
+| `DISCORD_AUTHOR_ICON_URL` | empty | Optional embed author icon URL. |
+| `DISCORD_USERNAME` | empty | Optional webhook username override. |
+| `DISCORD_AVATAR_URL` | empty | Optional webhook avatar URL. |
 | `EXCLUDE_REPLIES` | `true` | Exclude replies from monitoring. |
 | `EXCLUDE_REPOSTS` | `true` | Exclude reposts/retweets from monitoring. |
 | `DRY_RUN` | `false` | Print notifications without sending webhooks. |
@@ -196,6 +204,29 @@ The state file stores each account separately:
 ```
 
 Adding a new account triggers one user lookup for that account, then the `user_id` is cached.
+
+## Discord Webhook
+
+By default notifications are sent as Discord embeds. You can customize the visual identity without changing code:
+
+```text
+DISCORD_USE_EMBED=true
+DISCORD_EMBED_COLOR=#1D9BF0
+DISCORD_FOOTER_TEXT=X
+DISCORD_FOOTER_ICON_URL=
+DISCORD_AUTHOR_NAME=Twitter/X Monitor
+DISCORD_AUTHOR_ICON_URL=
+DISCORD_USERNAME=
+DISCORD_AVATAR_URL=
+```
+
+The default footer format is:
+
+```text
+X • 01/05/2026 12:37
+```
+
+Set `DISCORD_USE_EMBED=false` to send plain text messages instead.
 
 ## Usage Analytics
 

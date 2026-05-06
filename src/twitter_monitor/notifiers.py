@@ -1,4 +1,6 @@
 import logging
+from datetime import timezone
+from typing import Any
 
 import requests
 
@@ -23,10 +25,11 @@ class Notifier:
         if post.created_at:
             prefix += f" at {post.created_at.isoformat()}"
         message = f"{prefix}\n{post_url(username, post.id)}\n\n{post.text}"
-        self._send(message)
+        payload = self._build_discord_payload(username, post, fallback_message=message)
+        self._send(payload, fallback_message=message)
 
-    def _send(self, message: str) -> None:
-        self._logger.info("Notification payload:\n%s", message)
+    def _send(self, payload: dict[str, Any], *, fallback_message: str) -> None:
+        self._logger.info("Notification payload:\n%s", fallback_message)
         if self._config.dry_run or not self._config.discord_webhook_url:
             if self._config.dry_run:
                 self._logger.info("DRY_RUN=true, webhook delivery skipped.")
@@ -37,8 +40,50 @@ class Notifier:
         self._logger.info("Sending Discord webhook notification.")
         response = requests.post(
             self._config.discord_webhook_url,
-            json={"content": message},
+            json=payload,
             timeout=15,
         )
         response.raise_for_status()
         self._logger.info("Discord webhook delivered.")
+
+    def _build_discord_payload(self, username: str, post: Post, *, fallback_message: str) -> dict[str, Any]:
+        payload: dict[str, Any] = {}
+        if self._config.discord_username:
+            payload["username"] = self._config.discord_username
+        if self._config.discord_avatar_url:
+            payload["avatar_url"] = self._config.discord_avatar_url
+
+        if not self._config.discord_use_embed:
+            payload["content"] = fallback_message
+            return payload
+
+        embed: dict[str, Any] = {
+            "title": f"New post by @{username}",
+            "url": post_url(username, post.id),
+            "description": _truncate(post.text, 4096),
+            "color": self._config.discord_color,
+            "author": {"name": self._config.discord_author_name},
+            "footer": {"text": self._footer_text(post)},
+        }
+
+        if self._config.discord_author_icon_url:
+            embed["author"]["icon_url"] = self._config.discord_author_icon_url
+        if self._config.discord_footer_icon_url:
+            embed["footer"]["icon_url"] = self._config.discord_footer_icon_url
+        if post.created_at:
+            embed["timestamp"] = post.created_at.astimezone(timezone.utc).isoformat()
+
+        payload["embeds"] = [embed]
+        return payload
+
+    def _footer_text(self, post: Post) -> str:
+        if not post.created_at:
+            return self._config.discord_footer_text
+        local_time = post.created_at.astimezone()
+        return f"{self._config.discord_footer_text} • {local_time:%d/%m/%Y %H:%M}"
+
+
+def _truncate(value: str, max_length: int) -> str:
+    if len(value) <= max_length:
+        return value
+    return value[: max_length - 1] + "..."

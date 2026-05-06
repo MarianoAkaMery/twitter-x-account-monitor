@@ -20,6 +20,14 @@ class Config:
     dry_run: bool
     log_level: str
     log_file: Path | None
+    discord_use_embed: bool
+    discord_color: int
+    discord_footer_text: str
+    discord_footer_icon_url: str | None
+    discord_author_name: str
+    discord_author_icon_url: str | None
+    discord_username: str | None
+    discord_avatar_url: str | None
 
 
 def env_bool(name: str, default: bool) -> bool:
@@ -63,12 +71,36 @@ def load_config() -> Config:
         dry_run=env_bool("DRY_RUN", False),
         log_level=os.getenv("LOG_LEVEL", "INFO").strip() or "INFO",
         log_file=_optional_path("LOG_FILE"),
+        discord_use_embed=env_bool("DISCORD_USE_EMBED", True),
+        discord_color=_env_color("DISCORD_EMBED_COLOR", 0x1D9BF0),
+        discord_footer_text=os.getenv("DISCORD_FOOTER_TEXT", "X").strip() or "X",
+        discord_footer_icon_url=_optional_str("DISCORD_FOOTER_ICON_URL"),
+        discord_author_name=os.getenv("DISCORD_AUTHOR_NAME", "Twitter/X Monitor").strip() or "Twitter/X Monitor",
+        discord_author_icon_url=_optional_str("DISCORD_AUTHOR_ICON_URL"),
+        discord_username=_optional_str("DISCORD_USERNAME"),
+        discord_avatar_url=_optional_str("DISCORD_AVATAR_URL"),
     )
 
 
 def _optional_path(name: str) -> Path | None:
     value = os.getenv(name, "").strip()
     return Path(value) if value else None
+
+
+def _optional_str(name: str) -> str | None:
+    value = os.getenv(name, "").strip()
+    return value or None
+
+
+def _env_color(name: str, default: int) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    value = raw.removeprefix("#")
+    try:
+        return int(value, 16)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be a hex color like #1D9BF0") from exc
 
 
 def _load_usernames() -> tuple[str, ...]:
