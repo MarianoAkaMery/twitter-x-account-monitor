@@ -20,7 +20,7 @@ def load_state(path: Path) -> MonitorState:
     if not path.exists():
         return MonitorState(accounts={})
 
-    data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8-sig"))
 
     if "accounts" in data and isinstance(data["accounts"], dict):
         return MonitorState(
