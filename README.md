@@ -1,6 +1,6 @@
 # Twitter/X Monitor
 
-A small Python monitor that watches one X/Twitter account and notifies when new posts appear.
+A small Python monitor that watches one or more X/Twitter accounts and notifies when new posts appear.
 
 The project uses the official X API v2 through X's Python XDK, stores local state to avoid duplicate notifications, and defaults to conservative settings for Pay-per-use accounts.
 
@@ -199,7 +199,7 @@ Adding a new account triggers one user lookup for that account, then the `user_i
 
 ## Usage Analytics
 
-Print raw X API usage data:
+Print a readable X API usage summary:
 
 ```powershell
 .\.venv\Scripts\python.exe usage.py
@@ -211,7 +211,14 @@ or:
 twitter-monitor-usage
 ```
 
-A cost chart is planned, but the first version keeps usage output raw so the project can map the real API response format before drawing graphs.
+Useful options:
+
+```powershell
+.\.venv\Scripts\python.exe usage.py --days 30
+.\.venv\Scripts\python.exe usage.py --json
+```
+
+The command prints project usage, cap information, daily usage rows when available, and practical billing notes. Use `--json` when debugging the raw X API response.
 
 ## Project Layout
 
@@ -242,9 +249,16 @@ If a Bearer Token or Discord webhook is accidentally shared, rotate it immediate
 
 ## Roadmap
 
+Done:
+
 - Multi-account monitoring.
-- Better structured logging.
+- Structured terminal/file logging.
+- Readable usage summary command.
+- Pay-per-use cost guardrails in config and logs.
+
+Planned:
+
 - Usage history snapshots.
 - Cost/usage chart from saved usage snapshots.
 - Additional notification providers.
-- Tests for config, state, and notification formatting.
+- Tests for config, state, usage formatting, and notification formatting.

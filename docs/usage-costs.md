@@ -19,9 +19,23 @@ DRY_RUN=true
 - Increase `POLL_SECONDS` for long-running monitors.
 - Remember that each monitored account can require one timeline request per poll cycle.
 
+## Usage Command
+
+Show a readable usage summary:
+
+```powershell
+.\.venv\Scripts\python.exe usage.py --days 30
+```
+
+Show the raw X API response:
+
+```powershell
+.\.venv\Scripts\python.exe usage.py --json
+```
+
 ## Future Cost Chart
 
-The project has a `twitter-monitor-usage` command that prints raw usage data from X. A future chart can save daily snapshots and render:
+The project has a `twitter-monitor-usage` command that prints usage data from X. A future chart can save daily snapshots and render:
 
 - posts consumed by day
 - users consumed by day

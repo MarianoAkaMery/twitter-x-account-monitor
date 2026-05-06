@@ -66,9 +66,9 @@ class XClient:
         self._logger.info("X API returned %s post(s) for this poll.", len(posts))
         return posts
 
-    def get_usage(self) -> dict[str, Any]:
+    def get_usage(self, days: int | None = None) -> dict[str, Any]:
         self._logger.info("Requesting raw X API usage data.")
-        response = self._client.usage.get()
+        response = self._client.usage.get(days=days)
         if hasattr(response, "model_dump"):
             return response.model_dump(mode="json")
         if isinstance(response, dict):
