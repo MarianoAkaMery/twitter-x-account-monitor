@@ -29,7 +29,7 @@ class Monitor:
         poll_count = 0
         while True:
             try:
-                self._poll_once(state)
+                posts_seen = self._poll_once(state)
             except requests.HTTPError as exc:
                 status_code = exc.response.status_code if exc.response is not None else None
                 if status_code == 402:
@@ -43,14 +43,18 @@ class Monitor:
                 self._notifier.info(f"X API error: {exc!r}")
             except Exception as exc:
                 self._notifier.info(f"Monitor error: {exc!r}")
+            else:
+                if posts_seen == 0:
+                    self._notifier.info("No new posts.")
 
             poll_count += 1
             if self._config.max_polls and poll_count >= self._config.max_polls:
+                self._notifier.info(f"Reached MAX_POLLS={self._config.max_polls}. Stopping.")
                 break
 
             time.sleep(self._config.poll_seconds)
 
-    def _poll_once(self, state: MonitorState) -> None:
+    def _poll_once(self, state: MonitorState) -> int:
         if not state.user_id:
             raise RuntimeError("Missing user_id in state")
 
@@ -66,7 +70,7 @@ class Monitor:
                 )
             else:
                 self._notifier.info("Initialized state: no visible posts returned.")
-            return
+            return 0
 
         for post in posts:
             self._notifier.post(self._config.username, post)
@@ -74,3 +78,5 @@ class Monitor:
 
         if state.last_seen_id:
             save_state(self._config.state_file, state)
+
+        return len(posts)
