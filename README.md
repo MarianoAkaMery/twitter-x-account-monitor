@@ -13,6 +13,8 @@ The project uses the official X API v2 through X's Python XDK, stores local stat
 - Skip historical posts on first run by default.
 - Print notifications to the console.
 - Optionally send notifications to a Discord webhook.
+- Human-readable terminal logging with startup, polling, API, and notification status.
+- Optional file logging.
 - Run as a simple script or as an installed CLI.
 
 ## Requirements
@@ -47,6 +49,7 @@ MAX_RESULTS=5
 MAX_POLLS=1
 SKIP_EXISTING_ON_START=true
 DRY_RUN=true
+LOG_LEVEL=INFO
 ```
 
 Run a one-shot test:
@@ -102,6 +105,8 @@ All settings are loaded from `.env`.
 | `EXCLUDE_REPLIES` | `true` | Exclude replies from monitoring. |
 | `EXCLUDE_REPOSTS` | `true` | Exclude reposts/retweets from monitoring. |
 | `DRY_RUN` | `false` | Print notifications without sending webhooks. |
+| `LOG_LEVEL` | `INFO` | Terminal logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`. |
+| `LOG_FILE` | empty | Optional path for writing logs to a file. |
 
 ## Cost Controls
 
@@ -123,6 +128,28 @@ Also configure these in the Developer Console:
 - Monitor usage after each test run.
 
 The monitor intentionally caches `user_id` in the state file. This avoids doing a user lookup on every start.
+
+## Terminal Output
+
+The monitor logs concrete runtime events:
+
+```text
+2026-05-06 21:45:00 | INFO     | Twitter/X monitor starting.
+2026-05-06 21:45:00 | INFO     | Watching account: @xdevelopers
+2026-05-06 21:45:00 | INFO     | Runtime controls: poll_seconds=300 max_results=5 max_polls=1 skip_existing_on_start=True
+2026-05-06 21:45:00 | INFO     | Run mode: one-shot/test mode, stopping after 1 poll(s).
+2026-05-06 21:45:00 | INFO     | Cost guardrails: requesting up to 5 post(s) per poll every 300 second(s).
+2026-05-06 21:45:01 | INFO     | Starting poll #1.
+2026-05-06 21:45:01 | INFO     | Requesting posts: user_id=... since_id=... max_results=5 exclude=['replies', 'retweets'].
+2026-05-06 21:45:02 | INFO     | No new posts.
+2026-05-06 21:45:02 | INFO     | Reached MAX_POLLS=1. Stopping.
+```
+
+To save logs to a file:
+
+```text
+LOG_FILE=twitter-monitor.log
+```
 
 ## Usage Analytics
 
@@ -148,6 +175,7 @@ src/twitter_monitor/
   config.py       Environment config
   monitor.py      Polling loop
   notifiers.py    Console and Discord notifications
+  logging_setup.py Terminal/file logging
   state.py        Local state file handling
   usage.py        Usage endpoint command
   x_client.py     XDK wrapper

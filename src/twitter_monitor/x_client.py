@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -18,14 +19,28 @@ class XClient:
     def __init__(self, config: Config) -> None:
         self._config = config
         self._client = Client(bearer_token=config.bearer_token)
+        self._logger = logging.getLogger(__name__)
 
     def get_user_id(self, username: str) -> str:
+        self._logger.info("Resolving X user id for @%s.", username)
         response = self._client.users.get_by_username(username=username)
         if response.data is None:
             raise RuntimeError(f"User not found: @{username}")
-        return str(_get(response.data, "id"))
+        user_id = str(_get(response.data, "id"))
+        self._logger.info("Resolved @%s to user_id=%s.", username, user_id)
+        return user_id
 
     def get_recent_posts(self, user_id: str, since_id: str | None) -> list[Post]:
+        self._logger.info(
+            "Requesting posts: user_id=%s since_id=%s max_results=%s exclude=%s.",
+            user_id,
+            since_id or "none",
+            self._config.max_results,
+            self._get_excludes() or "none",
+        )
+
+        # XDK auto-paginates. The monitor intentionally consumes only the first page
+        # per poll so MAX_RESULTS remains the cost/volume guardrail users expect.
         pages = self._client.users.get_posts(
             id=user_id,
             max_results=self._config.max_results,
@@ -36,6 +51,7 @@ class XClient:
 
         response = next(iter(pages), None)
         if response is None:
+            self._logger.info("X API returned no page for this poll.")
             return []
 
         posts = [
@@ -47,9 +63,11 @@ class XClient:
             for tweet in response.data or []
         ]
         posts.sort(key=lambda post: int(post.id))
+        self._logger.info("X API returned %s post(s) for this poll.", len(posts))
         return posts
 
     def get_usage(self) -> dict[str, Any]:
+        self._logger.info("Requesting raw X API usage data.")
         response = self._client.usage.get()
         if hasattr(response, "model_dump"):
             return response.model_dump(mode="json")

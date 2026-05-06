@@ -18,6 +18,8 @@ class Config:
     exclude_replies: bool
     exclude_reposts: bool
     dry_run: bool
+    log_level: str
+    log_file: Path | None
 
 
 def env_bool(name: str, default: bool) -> bool:
@@ -59,4 +61,11 @@ def load_config() -> Config:
         exclude_replies=env_bool("EXCLUDE_REPLIES", True),
         exclude_reposts=env_bool("EXCLUDE_REPOSTS", True),
         dry_run=env_bool("DRY_RUN", False),
+        log_level=os.getenv("LOG_LEVEL", "INFO").strip() or "INFO",
+        log_file=_optional_path("LOG_FILE"),
     )
+
+
+def _optional_path(name: str) -> Path | None:
+    value = os.getenv(name, "").strip()
+    return Path(value) if value else None
