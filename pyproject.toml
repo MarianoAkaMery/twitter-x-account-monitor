@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "twitter-monitor-by-mery"
+version = "0.1.0"
+description = "Small X/Twitter monitor that notifies when a configured account publishes new posts."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "xdk>=0.9,<1",
+    "requests>=2.31,<3",
+    "python-dotenv>=1.0,<2",
+]
+
+[project.scripts]
+twitter-monitor = "twitter_monitor.cli:main"
+twitter-monitor-usage = "twitter_monitor.usage:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
