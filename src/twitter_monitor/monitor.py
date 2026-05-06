@@ -87,8 +87,10 @@ class Monitor:
 
         for post in posts:
             self._logger.info("New post detected for @%s: id=%s.", account.username, post.id)
-            self._notifier.post(account.username, post)
             account.last_seen_id = post.id
+            save_state(self._config.state_file, state)
+            self._logger.info("Saved state for @%s before notification delivery.", account.username)
+            self._notifier.post(account.username, post)
 
         if posts and account.last_seen_id:
             save_state(self._config.state_file, state)

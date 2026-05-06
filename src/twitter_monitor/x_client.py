@@ -58,7 +58,7 @@ class XClient:
             Post(
                 id=str(_get(tweet, "id")),
                 text=str(_get(tweet, "text", "")),
-                created_at=_get(tweet, "created_at", None),
+                created_at=_parse_datetime(_get(tweet, "created_at", None)),
             )
             for tweet in response.data or []
         ]
@@ -88,3 +88,17 @@ def _get(value: Any, key: str, default: Any = None) -> Any:
     if isinstance(value, dict):
         return value.get(key, default)
     return getattr(value, key, default)
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        normalized = value.removesuffix("Z") + "+00:00" if value.endswith("Z") else value
+        try:
+            return datetime.fromisoformat(normalized)
+        except ValueError:
+            return None
+    return None
