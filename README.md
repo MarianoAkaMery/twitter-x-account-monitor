@@ -7,6 +7,7 @@ The project uses the official X API v2 through X's Python XDK, stores local stat
 ## Features
 
 - Monitor new posts from one configured account.
+- Monitor one or more accounts with `X_USERNAMES`.
 - Use a Project App Bearer Token from X API v2.
 - Cache the target `user_id` to avoid repeated user lookup calls.
 - Store the newest seen post ID locally.
@@ -43,7 +44,7 @@ Edit `.env`:
 
 ```text
 X_BEARER_TOKEN=your_bearer_token_here
-X_USERNAME=xdevelopers
+X_USERNAMES=xdevelopers,github
 POLL_SECONDS=300
 MAX_RESULTS=5
 MAX_POLLS=1
@@ -95,7 +96,8 @@ All settings are loaded from `.env`.
 | Variable | Default | Description |
 | --- | --- | --- |
 | `X_BEARER_TOKEN` | required | Bearer Token from an X API v2 Project App. |
-| `X_USERNAME` | required | Account to monitor, without `@`. |
+| `X_USERNAMES` | required | Comma-separated accounts to monitor, without `@`. |
+| `X_USERNAME` | empty | Backward-compatible single-account fallback if `X_USERNAMES` is empty. |
 | `POLL_SECONDS` | `300` | Seconds between polls. Higher values reduce API usage. |
 | `STATE_FILE` | `.twitter-monitor-state.json` | Local state file for `user_id` and latest seen post. |
 | `MAX_RESULTS` | `5` | Posts requested per poll. X supports 5-100 for user timelines. |
@@ -129,16 +131,19 @@ Also configure these in the Developer Console:
 
 The monitor intentionally caches `user_id` in the state file. This avoids doing a user lookup on every start.
 
+For multiple accounts, each poll cycle makes up to one timeline request per account. For example, `X_USERNAMES=a,b,c` and `POLL_SECONDS=300` means up to 3 timeline requests every 5 minutes.
+
 ## Terminal Output
 
 The monitor logs concrete runtime events:
 
 ```text
 2026-05-06 21:45:00 | INFO     | Twitter/X monitor starting.
-2026-05-06 21:45:00 | INFO     | Watching account: @xdevelopers
+2026-05-06 21:45:00 | INFO     | Watching accounts: @xdevelopers, @github
 2026-05-06 21:45:00 | INFO     | Runtime controls: poll_seconds=300 max_results=5 max_polls=1 skip_existing_on_start=True
 2026-05-06 21:45:00 | INFO     | Run mode: one-shot/test mode, stopping after 1 poll(s).
-2026-05-06 21:45:00 | INFO     | Cost guardrails: requesting up to 5 post(s) per poll every 300 second(s).
+2026-05-06 21:45:00 | INFO     | Cost guardrails: requesting up to 5 post(s) per account every 300 second(s).
+2026-05-06 21:45:00 | INFO     | Worst-case request volume: 2 timeline request(s) per poll cycle.
 2026-05-06 21:45:01 | INFO     | Starting poll #1.
 2026-05-06 21:45:01 | INFO     | Requesting posts: user_id=... since_id=... max_results=5 exclude=['replies', 'retweets'].
 2026-05-06 21:45:02 | INFO     | No new posts.
@@ -150,6 +155,47 @@ To save logs to a file:
 ```text
 LOG_FILE=twitter-monitor.log
 ```
+
+## Continuous Monitoring
+
+Use this in `.env`:
+
+```text
+MAX_POLLS=0
+POLL_SECONDS=300
+```
+
+Then run:
+
+```powershell
+.\.venv\Scripts\python.exe monitor.py
+```
+
+Stop it with `Ctrl+C`.
+
+## Multiple Accounts
+
+Use comma-separated usernames:
+
+```text
+X_USERNAMES=xdevelopers,github,openai
+```
+
+The state file stores each account separately:
+
+```json
+{
+  "accounts": {
+    "xdevelopers": {
+      "last_seen_id": "...",
+      "user_id": "...",
+      "username": "xdevelopers"
+    }
+  }
+}
+```
+
+Adding a new account triggers one user lookup for that account, then the `user_id` is cached.
 
 ## Usage Analytics
 

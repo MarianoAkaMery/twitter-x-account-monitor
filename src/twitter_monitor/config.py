@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 @dataclass(frozen=True)
 class Config:
     bearer_token: str
-    username: str
+    usernames: tuple[str, ...]
     poll_seconds: int
     state_file: Path
     max_results: int
@@ -43,15 +43,15 @@ def load_config() -> Config:
     load_dotenv()
 
     bearer_token = os.getenv("X_BEARER_TOKEN", "").strip()
-    username = os.getenv("X_USERNAME", "").strip().lstrip("@")
+    usernames = _load_usernames()
     if not bearer_token:
         raise RuntimeError("Missing X_BEARER_TOKEN in environment or .env")
-    if not username:
-        raise RuntimeError("Missing X_USERNAME in environment or .env")
+    if not usernames:
+        raise RuntimeError("Missing X_USERNAMES or X_USERNAME in environment or .env")
 
     return Config(
         bearer_token=bearer_token,
-        username=username,
+        usernames=usernames,
         poll_seconds=env_int("POLL_SECONDS", 300, minimum=15),
         state_file=Path(os.getenv("STATE_FILE", ".twitter-monitor-state.json")),
         max_results=env_int("MAX_RESULTS", 5, minimum=5, maximum=100),
@@ -69,3 +69,13 @@ def load_config() -> Config:
 def _optional_path(name: str) -> Path | None:
     value = os.getenv(name, "").strip()
     return Path(value) if value else None
+
+
+def _load_usernames() -> tuple[str, ...]:
+    raw = os.getenv("X_USERNAMES", "").strip() or os.getenv("X_USERNAME", "").strip()
+    usernames = []
+    for item in raw.split(","):
+        username = item.strip().lstrip("@")
+        if username and username not in usernames:
+            usernames.append(username)
+    return tuple(usernames)

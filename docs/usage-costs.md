@@ -17,6 +17,7 @@ DRY_RUN=true
 - Set a low spending limit.
 - Watch usage analytics after each run.
 - Increase `POLL_SECONDS` for long-running monitors.
+- Remember that each monitored account can require one timeline request per poll cycle.
 
 ## Future Cost Chart
 
