@@ -21,10 +21,10 @@ class Notifier:
         self._logger.info(message)
 
     def post(self, username: str, post: Post) -> None:
-        prefix = f"New post by @{username}"
+        prefix = f"{_notification_title(post)} by @{username}"
         if post.created_at:
             prefix += f" at {post.created_at.isoformat()}"
-        message = f"{prefix}\n{post_url(username, post.id)}\n\n{post.text}"
+        message = f"{prefix}\n{post_url(username, post.id)}\n\n{_description(post)}"
         payload = self._build_discord_payload(username, post, fallback_message=message)
         self._send(payload, fallback_message=message)
 
@@ -58,9 +58,9 @@ class Notifier:
             return payload
 
         embed: dict[str, Any] = {
-            "title": f"New post by @{username}",
+            "title": f"{_notification_title(post)} by @{username}",
             "url": post_url(username, post.id),
-            "description": _truncate(post.text, 4096),
+            "description": _truncate(_description(post), 4096),
             "color": self._config.discord_color,
             "author": {"name": self._config.discord_author_name},
             "footer": {"text": self._footer_text(post)},
@@ -72,6 +72,8 @@ class Notifier:
             embed["footer"]["icon_url"] = self._config.discord_footer_icon_url
         if post.created_at:
             embed["timestamp"] = post.created_at.astimezone(timezone.utc).isoformat()
+        if post.media_urls:
+            embed["image"] = {"url": post.media_urls[0]}
 
         payload["embeds"] = [embed]
         return payload
@@ -87,3 +89,17 @@ def _truncate(value: str, max_length: int) -> str:
     if len(value) <= max_length:
         return value
     return value[: max_length - 1] + "..."
+
+
+def _notification_title(post: Post) -> str:
+    if post.kind == "repost":
+        return "New repost"
+    if post.kind == "quote":
+        return "New quote post"
+    return "New post"
+
+
+def _description(post: Post) -> str:
+    if post.kind in {"repost", "quote"} and post.text:
+        return f">>> {post.text}"
+    return post.text

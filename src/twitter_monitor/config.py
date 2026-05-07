@@ -16,7 +16,7 @@ class Config:
     skip_existing_on_start: bool
     discord_webhook_url: str | None
     exclude_replies: bool
-    exclude_reposts: bool
+    include_reposts: bool
     dry_run: bool
     log_level: str
     log_file: Path | None
@@ -67,12 +67,12 @@ def load_config() -> Config:
         skip_existing_on_start=env_bool("SKIP_EXISTING_ON_START", True),
         discord_webhook_url=os.getenv("DISCORD_WEBHOOK_URL") or None,
         exclude_replies=env_bool("EXCLUDE_REPLIES", True),
-        exclude_reposts=env_bool("EXCLUDE_REPOSTS", True),
+        include_reposts=_include_reposts(),
         dry_run=env_bool("DRY_RUN", False),
         log_level=os.getenv("LOG_LEVEL", "INFO").strip() or "INFO",
         log_file=_optional_path("LOG_FILE"),
         discord_use_embed=env_bool("DISCORD_USE_EMBED", True),
-        discord_color=_env_color("DISCORD_EMBED_COLOR", 0x1D9BF0),
+        discord_color=_env_color("DISCORD_EMBED_COLOR", 0xF1D400),
         discord_footer_text=os.getenv("DISCORD_FOOTER_TEXT", "X").strip() or "X",
         discord_footer_icon_url=_optional_str("DISCORD_FOOTER_ICON_URL"),
         discord_author_name=os.getenv("DISCORD_AUTHOR_NAME", "Twitter/X Monitor").strip() or "Twitter/X Monitor",
@@ -100,7 +100,13 @@ def _env_color(name: str, default: int) -> int:
     try:
         return int(value, 16)
     except ValueError as exc:
-        raise RuntimeError(f"{name} must be a hex color like #1D9BF0") from exc
+        raise RuntimeError(f"{name} must be a hex color like #f1d400") from exc
+
+
+def _include_reposts() -> bool:
+    if os.getenv("INCLUDE_REPOSTS") is not None:
+        return env_bool("INCLUDE_REPOSTS", True)
+    return not env_bool("EXCLUDE_REPOSTS", False)
 
 
 def _load_usernames() -> tuple[str, ...]:

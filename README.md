@@ -105,7 +105,7 @@ All settings are loaded from `.env`.
 | `SKIP_EXISTING_ON_START` | `true` | Initialize state without notifying old posts. |
 | `DISCORD_WEBHOOK_URL` | empty | Optional Discord webhook destination. |
 | `DISCORD_USE_EMBED` | `true` | Send Discord embeds instead of plain text messages. |
-| `DISCORD_EMBED_COLOR` | `#1D9BF0` | Discord embed color as a hex value. |
+| `DISCORD_EMBED_COLOR` | `#f1d400` | Discord embed color as a hex value. |
 | `DISCORD_FOOTER_TEXT` | `X` | Footer prefix, for example `X` in `X • 01/05/2026 12:37`. |
 | `DISCORD_FOOTER_ICON_URL` | empty | Optional footer icon URL. |
 | `DISCORD_AUTHOR_NAME` | `Twitter/X Monitor` | Embed author label. |
@@ -113,7 +113,7 @@ All settings are loaded from `.env`.
 | `DISCORD_USERNAME` | empty | Optional webhook username override. |
 | `DISCORD_AVATAR_URL` | empty | Optional webhook avatar URL. |
 | `EXCLUDE_REPLIES` | `true` | Exclude replies from monitoring. |
-| `EXCLUDE_REPOSTS` | `true` | Exclude reposts/retweets from monitoring. |
+| `INCLUDE_REPOSTS` | `true` | Monitor reposts/retweets too. |
 | `DRY_RUN` | `false` | Print notifications without sending webhooks. |
 | `LOG_LEVEL` | `INFO` | Terminal logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`. |
 | `LOG_FILE` | empty | Optional path for writing logs to a file. |
@@ -153,7 +153,7 @@ The monitor logs concrete runtime events:
 2026-05-06 21:45:00 | INFO     | Cost guardrails: requesting up to 5 post(s) per account every 300 second(s).
 2026-05-06 21:45:00 | INFO     | Worst-case request volume: 2 timeline request(s) per poll cycle.
 2026-05-06 21:45:01 | INFO     | Starting poll #1.
-2026-05-06 21:45:01 | INFO     | Requesting posts: user_id=... since_id=... max_results=5 exclude=['replies', 'retweets'].
+2026-05-06 21:45:01 | INFO     | Requesting posts: user_id=... since_id=... max_results=5 exclude=['replies'].
 2026-05-06 21:45:02 | INFO     | No new posts.
 2026-05-06 21:45:02 | INFO     | Reached MAX_POLLS=1. Stopping.
 ```
@@ -211,7 +211,7 @@ By default notifications are sent as Discord embeds. You can customize the visua
 
 ```text
 DISCORD_USE_EMBED=true
-DISCORD_EMBED_COLOR=#1D9BF0
+DISCORD_EMBED_COLOR=#f1d400
 DISCORD_FOOTER_TEXT=X
 DISCORD_FOOTER_ICON_URL=
 DISCORD_AUTHOR_NAME=Twitter/X Monitor

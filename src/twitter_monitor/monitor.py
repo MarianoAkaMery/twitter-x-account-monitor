@@ -125,9 +125,9 @@ class Monitor:
             len(self._config.usernames),
         )
         self._logger.info(
-            "Filters: exclude_replies=%s exclude_reposts=%s",
+            "Filters: exclude_replies=%s include_reposts=%s",
             self._config.exclude_replies,
-            self._config.exclude_reposts,
+            self._config.include_reposts,
         )
         self._logger.info(
             "Notifications: discord=%s dry_run=%s",
